@@ -37,4 +37,4 @@ jobs:
       - name: 🚀 Executar ETL
         run: |
           source .venv/bin/activate
-          python src/main.py
+          python estrutura_prolog/src/main.py
