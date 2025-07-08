@@ -1,0 +1,40 @@
+name: Executar ETL Prolog
+
+on:
+  schedule:
+    - cron: '0 8 * * *'    # 05:00 horário de Brasília (UTC+3)
+    - cron: '0 15 * * *'   # 12:00 horário de Brasília (UTC+3)
+  workflow_dispatch:       # Executar manualmente
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar o repositório
+        uses: actions/checkout@v3
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependências
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: 🔐 Criar arquivo .env
+        run: |
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "API_KEY_PROLOG=${{ secrets.API_KEY_PROLOG }}" >> .env
+
+      - name: 🚀 Executar ETL
+        run: |
+          source .venv/bin/activate
+          python src/main.py
