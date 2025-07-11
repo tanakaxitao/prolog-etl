@@ -1,8 +1,8 @@
-import requests
-from datetime import datetime
-import time
-import pandas as pd
-from config.settings import API_KEY
+import requests                      # ✅ Para chamadas HTTP à API Prolog
+from datetime import datetime        # ✅ Para datas e horas no controle de extração
+import time                          # ✅ Para controlar o tempo entre as requisições
+import pandas as pd                 # ✅ Para transformar os dados em DataFrame
+from config.settings import API_KEY # ✅ Correto: importa a chave da API do arquivo de configurações
 
 BASE_URL = "https://prologapp.com/prolog/api/v3/"
 HEADERS = {"x-prolog-api-token": API_KEY}
@@ -69,23 +69,85 @@ def extract_vehicles(branch_office_id=1074):
 
 
 def extract_os(branch_office_id=1074):
+    """
+    Função para extrair os dados das Ordens de Serviço da Prolog.
+    """
     base_url = BASE_URL + "work-orders"
-    ids = []
     params = {"branchOfficesId": branch_office_id, "pageSize": 100, "pageNumber": 0}
+    order_ids = []
+
+    print("🔍 Buscando IDs das Ordens de Serviço...")
+
     while True:
-        r = requests.get(base_url, headers=HEADERS, params=params)
-        if r.status_code != 200 or not r.json().get("content"):
+        try:
+            response = requests.get(base_url, headers=HEADERS, params=params, timeout=10)
+            if response.status_code != 200:
+                print(f"❌ Erro {response.status_code} na busca de IDs: {response.text}")
+                break
+
+            data = response.json().get("content", [])
+            if not data:
+                break
+
+            order_ids += [o["internalWorkOrderId"] for o in data]
+            print(f"✅ Página {params['pageNumber']} - {len(data)} ordens")
+            params["pageNumber"] += 1
+            time.sleep(0.5)
+
+        except Exception as e:
+            print(f"⚠️ Erro ao buscar IDs: {e}")
             break
-        ids.extend([o["internalWorkOrderId"] for o in r.json()["content"]])
-        params["pageNumber"] += 1
-        time.sleep(0.5)
+
+    print(f"🔹 Total de Ordens encontradas: {len(order_ids)}")
+
+    # Detalhamento das ordens
+    print("📦 Buscando detalhes de cada OS...")
     details = []
-    for oid in ids:
-        r = requests.get(f"{base_url}/{oid}", headers=HEADERS)
-        if r.status_code == 200:
-            order = r.json()
-            order["itemServices"] = len(order.get("itemServices", []))
-            order["itemProducts"] = len(order.get("itemProducts", []))
-            details.append(order)
-        time.sleep(0.5)
+    session = requests.Session()
+
+    for idx, order_id in enumerate(order_ids, 1):
+        order_url = f"{base_url}/{order_id}"
+        success = False
+        attempts = 0
+
+        while attempts < 5:
+            try:
+                res = session.get(order_url, headers=HEADERS, timeout=10)
+                if res.status_code == 200:
+                    order = res.json()
+                    order["itemServices"] = len(order.get("itemServices", []))
+                    order["itemProducts"] = len(order.get("itemProducts", []))
+
+                    if "completionBy" in order:
+                        cb = order["completionBy"]
+                        order["completionBy.id"] = cb.get("id")
+                        order["completionBy.name"] = cb.get("name")
+                        order["completionBy.serialNumber"] = cb.get("serialNumber")
+
+                    details.append(order)
+                    success = True
+                    break
+
+                elif res.status_code == 429:
+                    wait_time = 2 ** attempts + 0.5
+                    print(f"⏳ 429 - Aguardando {wait_time:.1f}s (tentativa {attempts+1}) para Ordem {order_id}")
+                    time.sleep(wait_time)
+                    attempts += 1
+                else:
+                    print(f"❌ Erro {res.status_code} na Ordem {order_id}")
+                    break
+
+            except Exception as e:
+                print(f"⚠️ Erro na requisição da Ordem {order_id}: {e}")
+                break
+
+        if not success:
+            print(f"❌ Falha ao buscar detalhes da Ordem {order_id}")
+
+        if idx % 10 == 0:
+            print(f"📊 {idx}/{len(order_ids)} ordens processadas")
+
+        time.sleep(0.3)
+
+    print(f"✅ Total de ordens detalhadas: {len(details)}")
     return details
