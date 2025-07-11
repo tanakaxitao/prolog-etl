@@ -7,14 +7,14 @@ import time
 users = extract_users()
 save_to_db(transform_users(users), "usuarios_prolog")
 
-vehicles = extract_vehicles()
-save_to_db(transform_vehicles(vehicles), "veiculos_prolog")
+#vehicles = extract_vehicles()
+#save_to_db(transform_vehicles(vehicles), "veiculos_prolog")
 
 # ✅ Teste da pipeline de OS
-os = extract_os()
-save_to_db(transform_os(os), "ordens_servico_prolog")
+#os = extract_os()
+#save_to_db(transform_os(os), "ordens_servico_prolog")
 
-time.sleep(1800)
+#time.sleep(1800)
 
-checklists = extract_checklists()
-save_to_db(transform_checklists(checklists), "checklists_prolog")
+#checklists = extract_checklists()
+#save_to_db(transform_checklists(checklists), "checklists_prolog")
