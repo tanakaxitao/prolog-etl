@@ -3,9 +3,16 @@ import pandas as pd
 
 def transform_users(data):
     df = pd.DataFrame(data)
-    df["role_id"] = df["role"].apply(lambda x: x.get("id") if isinstance(x, dict) else None)
-    df["role_name"] = df["role"].apply(lambda x: x.get("name") if isinstance(x, dict) else None)
-    return df.drop(columns=["role"], errors="ignore")
+
+    if "role" in df.columns:
+        df["role_id"] = df["role"].apply(lambda x: x.get("id") if isinstance(x, dict) else None)
+        df["role_name"] = df["role"].apply(lambda x: x.get("name") if isinstance(x, dict) else None)
+        df.drop(columns=["role"], errors="ignore", inplace=True)
+    else:
+        df["role_id"] = None
+        df["role_name"] = None
+
+    return df
 
 
 def transform_checklists(data):
