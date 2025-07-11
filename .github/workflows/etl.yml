@@ -23,7 +23,13 @@ jobs:
         run: |
           python -m venv .venv
           source .venv/bin/activate
+          python -m pip install --upgrade pip  # Atualizando pip
           pip install -r requirements.txt
+
+      - name: 📦 Verificar se o ambiente virtual foi ativado
+        run: |
+          which python
+          which pip
 
       - name: 🔐 Criar arquivo .env
         run: |
@@ -34,7 +40,11 @@ jobs:
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
           echo "API_KEY_PROLOG=${{ secrets.API_KEY_PROLOG }}" >> .env
 
+      - name: 🔍 Verificar estrutura de diretórios
+        run: |
+          ls -l estrutura_prolog/src/
+
       - name: 🚀 Executar ETL
         run: |
           source .venv/bin/activate
-          python src/main.py
+          python estrutura_prolog/src/main.py
