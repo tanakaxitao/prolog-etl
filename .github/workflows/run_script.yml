@@ -1,31 +1,33 @@
-name: Run Python Script
+name: Exportar Dados Prolog
 
 on:
-  push:
-    branches:
-      - main  # Ou a branch onde você deseja rodar o script
-  pull_request:
-    branches:
-      - main  # Ou a branch onde você deseja rodar o script
+  schedule:
+    # Rodar às 07h horário de Brasília (UTC-3)
+    - cron: '0 10 * * *'  # 07h de Brasília (UTC-3)
+  workflow_dispatch:  # Permite disparar manualmente também
 
 jobs:
-  run-script:
-    runs-on: ubuntu-latest  # Utilizando Ubuntu para rodar o script
+  run-scripts:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3  # Faz o checkout do código no repositório
+      # Passo 1: Clonar o repositório
+      - name: Clonar o repositório
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'  # Escolha a versão do Python que você usa
+      # Passo 2: Instalar dependências
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests psycopg2 sqlalchemy
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt  # Se você tiver um arquivo requirements.txt
-
-    - name: Run script
-      run: |
-        python src/main.py  # Caminho para rodar seu script
+      # Passo 3: Executar o script Python com as variáveis de ambiente
+      - name: Executar script de exportação
+        run: python src/main.py
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}

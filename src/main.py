@@ -1,7 +1,16 @@
+import os
+import time
 from data.extract import extract_users, extract_checklists, extract_vehicles, extract_os
 from data.transform import transform_users, transform_checklists, transform_vehicles, transform_os
 from data.load import save_to_db, append_os_to_db
-import time
+
+# Acessando as variáveis de ambiente
+API_KEY = os.getenv('API_KEY')
+DB_USER = os.getenv('DB_USER')
+DB_PASS = os.getenv('DB_PASS')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_NAME = os.getenv('DB_NAME')
 
 # Função para rodar cada pipeline com intervalo de 5 minutos
 def run_pipeline():
