@@ -2,27 +2,20 @@ import pandas as pd
 
 
 def transform_users(data):
-    import pandas as pd
-
     df = pd.DataFrame(data)
 
-    # Extrai os dados da role
-    df["role_name"] = df["role"].apply(lambda x: x.get("name") if isinstance(x, dict) else None)
+    # Renomeia o campo de função
+    df["função"] = df["role"].apply(lambda x: x.get("name") if isinstance(x, dict) else None)
 
-    # Mantém apenas as colunas desejadas
+    # Seleciona colunas desejadas
     colunas_desejadas = [
-        "id",              # ID do usuário
-        "companyId",       # ID da empresa
-        "sectorId",        # ID do setor
-        "sectorName",      # Nome do setor
-        "teamId",          # ID do time
-        "teamName",        # Nome do time
-        "role_name"        # Nome da função (extraído acima)
+        "id",           # ID do usuário
+        "teamName",     # Nome do time
+        "name",         # Nome do usuário
+        "função"        # Função (extraída da role)
     ]
 
-    # Retorna o DataFrame filtrado
     return df[colunas_desejadas]
-
 
 
 def transform_checklists(data):
