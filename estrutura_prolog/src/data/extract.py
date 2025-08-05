@@ -3,6 +3,9 @@ from datetime import datetime        # ✅ Para datas e horas no controle de ext
 import time                          # ✅ Para controlar o tempo entre as requisições
 import pandas as pd                 # ✅ Para transformar os dados em DataFrame
 from config.settings import API_KEY # ✅ Correto: importa a chave da API do arquivo de configurações
+import psycopg2
+from config.settings import DB_CONFIG
+
 
 BASE_URL = "https://prologapp.com/prolog/api/v3/"
 HEADERS = {"x-prolog-api-token": API_KEY}
@@ -12,22 +15,24 @@ def extract_users(branch_office_id=1074):
     url = BASE_URL + "users"
     user_ids = []
     params = {"branchOfficesId": branch_office_id, "pageSize": 100, "pageNumber": 0}
+
     while True:
         response = requests.get(url, headers=HEADERS, params=params)
         if response.status_code != 200 or not response.json().get("content"):
             break
+
         user_ids += [u["id"] for u in response.json()["content"]]
         params["pageNumber"] += 1
         time.sleep(0.5)
+
     details = []
     for uid in user_ids:
         r = requests.get(f"{url}/{uid}", headers=HEADERS)
         if r.status_code == 200:
             details.append(r.json())
         time.sleep(0.3)
+
     return details
-
-
 def extract_checklists(branch_office_id=1074, start_date="2025-01-01T00:00Z"):
     url = BASE_URL + "checklists"
     end_date = datetime.utcnow().strftime("%Y-%m-%dT23:59Z")
@@ -68,6 +73,52 @@ def extract_vehicles(branch_office_id=1074):
     return r.json().get("content", []) if r.status_code == 200 else []
 
 
+
+def get_existing_order_ids():
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
+        # Verifica se a tabela existe
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT 1 
+                FROM information_schema.tables 
+                WHERE table_schema = 'Prolog' 
+                AND table_name = 'ordens_servico_prolog'
+            )
+        """)
+        exists = cursor.fetchone()[0]
+
+        if not exists:
+            print("ℹ️ Tabela 'ordens_servico_prolog' ainda não existe. Coletando todas as OS.")
+            return set()
+
+        # Verifica se a tabela tem dados
+        cursor.execute('SELECT COUNT(*) FROM "Prolog".ordens_servico_prolog')
+        count = cursor.fetchone()[0]
+
+        if count == 0:
+            print("ℹ️ Tabela está vazia. Coletando todas as OS.")
+            return set()
+
+        # Coleta os IDs já existentes
+        cursor.execute('SELECT "internalWorkOrderId" FROM "Prolog".ordens_servico_prolog')
+        rows = cursor.fetchall()
+        return {row[0] for row in rows}
+
+    except Exception as e:
+        print(f"⚠️ Erro ao acessar o banco: {e}")
+        return set()
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+
 def extract_os(branch_office_id=1074):
     """
     Função para extrair os dados das Ordens de Serviço da Prolog.
@@ -100,12 +151,19 @@ def extract_os(branch_office_id=1074):
 
     print(f"🔹 Total de Ordens encontradas: {len(order_ids)}")
 
+    # Consulta os IDs já existentes no banco
+    existing_ids = get_existing_order_ids()
+    new_order_ids = [oid for oid in order_ids if oid not in existing_ids]
+
+    print(f"🔹 Novas Ordens a serem buscadas: {len(new_order_ids)}")
+
+
     # Detalhamento das ordens
     print("📦 Buscando detalhes de cada OS...")
     details = []
     session = requests.Session()
 
-    for idx, order_id in enumerate(order_ids, 1):
+    for idx, order_id in enumerate(new_order_ids, 1):
         order_url = f"{base_url}/{order_id}"
         success = False
         attempts = 0
@@ -150,4 +208,4 @@ def extract_os(branch_office_id=1074):
         time.sleep(0.3)
 
     print(f"✅ Total de ordens detalhadas: {len(details)}")
-    return details
+    return details 

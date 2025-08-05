@@ -9,3 +9,12 @@ def save_to_db(df, table_name, schema="Prolog"):
         print(f"✅ {table_name} salvo com sucesso!")
     except Exception as e:
         print(f"❌ Erro ao salvar {table_name}: {e}")
+
+
+def append_os_to_db(df, table_name="ordens_servico_prolog", schema="Prolog"):
+    try:
+        engine = create_engine(f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
+        df.to_sql(table_name, engine, if_exists="append", index=False, schema=schema)
+        print(f"✅ {table_name} atualizado com novas OS!")
+    except Exception as e:
+        print(f"❌ Erro ao adicionar novas OS em {table_name}: {e}")

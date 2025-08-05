@@ -4,15 +4,20 @@ import pandas as pd
 def transform_users(data):
     df = pd.DataFrame(data)
 
-    if "role" in df.columns:
-        df["role_id"] = df["role"].apply(lambda x: x.get("id") if isinstance(x, dict) else None)
-        df["role_name"] = df["role"].apply(lambda x: x.get("name") if isinstance(x, dict) else None)
-        df.drop(columns=["role"], errors="ignore", inplace=True)
-    else:
-        df["role_id"] = None
-        df["role_name"] = None
+    # Renomeia o campo de função
+    df["função"] = df["role"].apply(lambda x: x.get("name") if isinstance(x, dict) else None)
 
-    return df
+    # Seleciona colunas desejadas
+    colunas_desejadas = [
+        "id",           # ID do usuário
+        "teamName",     # Nome do time
+        "name",         # Nome do usuário
+        "função"        # Função (extraída da role)
+    ]
+
+    return df[colunas_desejadas]
+
+
 
 
 def transform_checklists(data):
@@ -23,9 +28,25 @@ def transform_checklists(data):
     return df
 
 
+import pandas as pd
+
 def transform_vehicles(data):
     df = pd.json_normalize(data)
-    df.rename(columns={"id": "Veiculo_id", "licensePlate": "Placa"}, inplace=True)
+
+    # Renomear colunas que você quer manter
+    df.rename(columns={
+        "id": "Veiculo_id",
+        "licensePlate": "Placa",
+        "make.name": "Marca",
+        "model.name": "Modelo",
+        "type.name": "Tipo",
+        "currentOdometer": "OdometroAtual",
+        "active": "Ativo"
+    }, inplace=True)
+
+    # Selecionar somente essas colunas renomeadas
+    df = df[["Veiculo_id", "Placa", "Marca", "Modelo", "Tipo", "OdometroAtual", "Ativo"]]
+
     return df
 
 
