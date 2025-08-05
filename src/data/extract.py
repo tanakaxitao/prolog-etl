@@ -15,21 +15,24 @@ def extract_users(branch_office_id=1074):
     url = BASE_URL + "users"
     user_ids = []
     params = {"branchOfficesId": branch_office_id, "pageSize": 100, "pageNumber": 0}
+
     while True:
         response = requests.get(url, headers=HEADERS, params=params)
         if response.status_code != 200 or not response.json().get("content"):
             break
+
         user_ids += [u["id"] for u in response.json()["content"]]
         params["pageNumber"] += 1
         time.sleep(0.5)
+
     details = []
     for uid in user_ids:
         r = requests.get(f"{url}/{uid}", headers=HEADERS)
         if r.status_code == 200:
             details.append(r.json())
         time.sleep(0.3)
-    return details
 
+    return details
 
 def extract_checklists(branch_office_id=1074, start_date="2025-01-01T00:00Z"):
     url = BASE_URL + "checklists"
