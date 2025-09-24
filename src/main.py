@@ -27,10 +27,10 @@ def run_pipeline():
     time.sleep(300)  # 5 minutos de intervalo
 
     # ✅ Pipeline de OS
-    os = extract_os()
-    append_os_to_db(transform_os(os), "ordens_servico_prolog")
+    #os = extract_os()
+    #append_os_to_db(transform_os(os), "ordens_servico_prolog")
     
-    time.sleep(300)  # 5 minutos de intervalo
+    #time.sleep(300)  # 5 minutos de intervalo
 
     # ✅ Pipeline de checklists
     checklists = extract_checklists()
