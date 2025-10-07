@@ -2,8 +2,10 @@ name: Exportar Dados Prolog
 
 on:
   schedule:
-    # Rodar às 07h horário de Brasília (UTC-3)
-    - cron: '0 10 * * *'  # 07h de Brasília (UTC-3)
+    # Rodar às 07:30 (10:30 UTC)
+    - cron: '30 10 * * *'
+    # Rodar às 13:00 (16:00 UTC)
+    - cron: '0 16 * * *'
   workflow_dispatch:  # Permite disparar manualmente também
 
 jobs:
@@ -18,16 +20,16 @@ jobs:
       # Passo 2: Configurar ambiente virtual e instalar dependências
       - name: Configurar Ambiente Virtual e Instalar Dependências
         run: |
-          python -m venv venv  # Cria o ambiente virtual
-          source venv/bin/activate  # Ativa o ambiente virtual
-          pip install --upgrade pip  # Atualiza o pip
-          pip install -r requirements.txt  # Instala as dependências do requirements.txt
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       # Passo 3: Executar o script Python com as variáveis de ambiente
       - name: Executar script de exportação
         run: |
-          source venv/bin/activate  # Ativa o ambiente virtual
-          python src/main.py  # Executa o script Python
+          source venv/bin/activate
+          python src/main.py
         env:
           API_KEY: ${{ secrets.API_KEY }}
           DB_USER: ${{ secrets.DB_USER }}
