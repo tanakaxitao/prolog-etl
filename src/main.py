@@ -22,7 +22,7 @@ def run_pipeline():
 
     # 🚧 Pipeline de veículos
     #vehicles = extract_vehicles()
-    save_to_db(transform_vehicles(vehicles), "veiculos_prolog")
+    #save_to_db(transform_vehicles(vehicles), "veiculos_prolog")
     
     #time.sleep(300)  # 5 minutos de intervalo
 
