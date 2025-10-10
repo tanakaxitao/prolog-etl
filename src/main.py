@@ -15,16 +15,16 @@ DB_NAME = os.getenv('DB_NAME')
 # Função para rodar cada pipeline com intervalo de 5 minutos
 def run_pipeline():
     # 🚧 Pipeline de usuários
-    users = extract_users()
-    save_to_db(transform_users(users), "usuarios_prolog")
+    #users = extract_users()
+    #save_to_db(transform_users(users), "usuarios_prolog")
     
-    time.sleep(300)  # 5 minutos de intervalo
+    #time.sleep(300)  # 5 minutos de intervalo
 
     # 🚧 Pipeline de veículos
-    vehicles = extract_vehicles()
+    #vehicles = extract_vehicles()
     save_to_db(transform_vehicles(vehicles), "veiculos_prolog")
     
-    time.sleep(300)  # 5 minutos de intervalo
+    #time.sleep(300)  # 5 minutos de intervalo
 
     # ✅ Pipeline de OS
     #os = extract_os()
